@@ -1,6 +1,6 @@
 import React from 'react';
-import type { FactorInfo, UserInputState, CorrectnessState } from '../types';
-import { GameMode, NumberType } from '../types';
+import type { FactorInfo, UserInputState, CorrectnessState } from '@/types';
+import { GameMode, NumberType } from '@/types';
 
 type FactorBugProps = {
   mode: GameMode;
@@ -58,7 +58,7 @@ const BugAppendage: React.FC<{
     stalkColorClass: string,
     correctnessValue?: boolean | null,
     showAnswers?: boolean
-}> = ({mode, isCreative, value, onChange, rotation, stalkLength, stalkColorClass, correctnessValue, showAnswers}) => {
+}> = ({mode, isCreative, value, onChange, rotation, stalkLength, stalkColorClass, correctnessValue, showAnswers = false}) => {
     return (
          <div className="flex items-center">
             <div className={`h-0.5 ${stalkColorClass}`} style={{width: stalkLength}}/>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { FactorInfo, UserInputState, CorrectnessState } from './types';
-import { GameMode, NumberType } from './types';
-import { FactorBug } from './components/FactorBug';
-import { ScoreBug } from './components/ScoreBug';
+import type { FactorInfo, UserInputState, CorrectnessState } from '@/types';
+import { GameMode, NumberType } from '@/types';
+import { FactorBug } from '@/components/FactorBug';
+import { ScoreBug } from '@/components/ScoreBug';
 
 const calculateFactorInfo = (num: number): FactorInfo => {
   if (num < 1 || num > 100) {
@@ -30,7 +30,7 @@ const calculateFactorInfo = (num: number): FactorInfo => {
   }
 
   let type = NumberType.Composite;
-  if (pairs.length === 1 && stinger === null) {
+  if (pairs.length === 1 && stinger === null && num !== 1) {
     type = NumberType.Prime;
   } else if (stinger !== null) {
     type = NumberType.Square;
@@ -39,6 +39,8 @@ const calculateFactorInfo = (num: number): FactorInfo => {
   // Special case for number 1
   if (num === 1) {
     type = NumberType.Square;
+    stinger = 1; // It's its own square root
+    pairs.length = 0; // No pairs, just a stinger
   }
 
 
@@ -94,8 +96,8 @@ const ModeSelector: React.FC<{ onSelect: (mode: GameMode) => void; selected: Gam
 
 
 export default function App() {
-  const [mode, setMode] = useState<GameMode>(GameMode.Watch);
-  const [selectedNumber, setSelectedNumber] = useState<number | null>(7);
+  const [mode, setMode] = useState<GameMode>(GameMode.Guided);
+  const [selectedNumber, setSelectedNumber] = useState<number | null>(12);
   const [factorInfo, setFactorInfo] = useState<FactorInfo | null>(null);
   const [animationStep, setAnimationStep] = useState(0);
 
@@ -159,6 +161,7 @@ export default function App() {
       setCreativeNumber(null);
       setCreativeFactorInfo(null);
       setCreativeInputs(null);
+      setSelectedNumber(mode === GameMode.Watch ? 7 : 12);
     }
   }, [mode, generateNewCreativeBug]);
 
@@ -462,24 +465,24 @@ export default function App() {
             <>
             <NumberSelector onSelect={handleNumberSelect} selected={selectedNumber} />
             {factorInfo && userInputs && (
-                <>
-                <p className="text-center text-gray-600 mt-2 mx-auto">This is the bug for {selectedNumber}. Can you find all its factor pairs? Use divisibility rules to help!</p>
-                <div className="relative w-full">
-                    <FactorBug
-                        factorInfo={factorInfo}
-                        mode={GameMode.Guided}
-                        userInputs={userInputs}
-                        onInputChange={handleInputChange}
-                        correctness={correctness}
-                        showAnswers={showAnswers}
-                    />
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-                        <button onClick={checkGuidedAnswers} className="px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors">
-                            Check My Answers
-                        </button>
-                    </div>
+                <div className="flex flex-col items-center">
+                  <p className="text-center text-gray-600 my-2 mx-auto max-w-md">This is the bug for {selectedNumber}. Can you find all its factor pairs? Use divisibility rules to help!</p>
+                  <div className="relative w-full">
+                      <FactorBug
+                          factorInfo={factorInfo}
+                          mode={GameMode.Guided}
+                          userInputs={userInputs}
+                          onInputChange={handleInputChange}
+                          correctness={correctness}
+                          showAnswers={showAnswers}
+                      />
+                  </div>
+                  <div className="mt-4">
+                      <button onClick={checkGuidedAnswers} className="px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors">
+                          Check My Answers
+                      </button>
+                  </div>
                 </div>
-                </>
             )}
             </>
         );
@@ -490,36 +493,38 @@ export default function App() {
                     A wild factor bug for the number {creativeNumber} appeared! First, build its body, then find its factors.
                  </p>
                  {creativeFactorInfo && creativeInputs && (
-                    <>
-                    <div className="flex justify-center items-center space-x-4 mb-2 p-3 bg-white/60 rounded-lg shadow-md">
-                        <span className="font-semibold text-gray-700">Build the Bug:</span>
-                        <button onClick={() => handleCreativeBugBuild('addLeg')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors shadow-sm">+ Add Leg Pair</button>
-                        <button onClick={() => handleCreativeBugBuild('removeLeg')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors shadow-sm" disabled={creativeInputs.legs.length === 0}>- Remove Leg Pair</button>
-                        <button onClick={() => handleCreativeBugBuild('toggleStinger')} className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors shadow-sm">Toggle Stinger</button>
+                    <div className="flex flex-col items-center">
+                      <div className="flex justify-center items-center space-x-4 mb-2 p-3 bg-white/60 rounded-lg shadow-md">
+                          <span className="font-semibold text-gray-700">Build the Bug:</span>
+                          <button onClick={() => handleCreativeBugBuild('addLeg')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors shadow-sm">+ Add Leg Pair</button>
+                          <button onClick={() => handleCreativeBugBuild('removeLeg')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors shadow-sm" disabled={creativeInputs.legs.length === 0}>- Remove Leg Pair</button>
+                          <button onClick={() => handleCreativeBugBuild('toggleStinger')} className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors shadow-sm">Toggle Stinger</button>
+                      </div>
+                      <div className="relative w-full">
+                          <FactorBug
+                              mode={GameMode.Creative}
+                              factorInfo={creativeFactorInfo}
+                              userInputs={creativeInputs}
+                              onInputChange={handleInputChange}
+                              correctness={creativeCorrectness}
+                              showAnswers={showCreativeAnswers}
+                              onNumberClick={generateNewCreativeBug}
+                          />
+                      </div>
+                      <div className="mt-4 flex flex-col items-center">
+                          <button onClick={checkCreativeAnswers} className="px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors">
+                              Check My Answers
+                          </button>
+                          {creativeMessage && <p className="mt-4 text-center font-semibold text-lg">{creativeMessage}</p>}
+                      </div>
                     </div>
-                    <div className="relative w-full">
-                        <FactorBug
-                            mode={GameMode.Creative}
-                            factorInfo={creativeFactorInfo}
-                            userInputs={creativeInputs}
-                            onInputChange={handleInputChange}
-                            correctness={creativeCorrectness}
-                            showAnswers={showCreativeAnswers}
-                            onNumberClick={generateNewCreativeBug}
-                        />
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                            <button onClick={checkCreativeAnswers} className="px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors">
-                                Check My Answers
-                            </button>
-                            {creativeMessage && <p className="mt-4 text-center font-semibold text-lg">{creativeMessage}</p>}
-                        </div>
-                    </div>
-                    </>
                  )}
             </div>
         );
+      default:
+        return null;
     }
-  }
+  };
 
   const renderCongratsModal = () => {
     const handleCloseAndResetCreative = () => {
@@ -566,9 +571,10 @@ export default function App() {
           </button>
         ),
       },
+      [GameMode.Watch]: null,
     };
 
-    const currentContent = (mode === GameMode.Guided || mode === GameMode.Creative) ? modalContent[mode] : null;
+    const currentContent = modalContent[mode];
 
     return (
       <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${showCongratsModal ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
@@ -602,7 +608,7 @@ export default function App() {
 
       <ModeSelector onSelect={handleModeSelect} selected={mode} />
 
-      <main className="w-full max-w-4xl mt-4 flex flex-col items-center space-y-4">
+      <main className="w-full max-w-4xl mt-4 flex flex-col items-center">
         {renderContent()}
       </main>
       

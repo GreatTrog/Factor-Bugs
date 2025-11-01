@@ -104,10 +104,11 @@ export const FactorBug: React.FC<FactorBugProps> = ({
 
 
     const getPairs = () => {
-        if(!factorInfo) return { antennaePair: [], legPairs: [], stingerValue: null };
+        if(!factorInfo) return { antennaePair: undefined, legPairs: [], stingerValue: null };
+        const hasPairs = factorInfo.pairs && factorInfo.pairs.length > 0;
         return {
-            antennaePair: factorInfo.pairs[0],
-            legPairs: factorInfo.pairs.slice(1),
+            antennaePair: hasPairs ? factorInfo.pairs[0] : undefined,
+            legPairs: hasPairs ? factorInfo.pairs.slice(1) : [],
             stingerValue: factorInfo.stinger
         };
     };
@@ -115,6 +116,8 @@ export const FactorBug: React.FC<FactorBugProps> = ({
     const { antennaePair, legPairs, stingerValue } = getPairs();
 
     const renderAntennae = () => {
+        if (!antennaePair) return null;
+
         const isVisible = mode !== GameMode.Watch || animationStep > 0;
         const transformBase = 'transition-all duration-500';
         const hidden = isVisible ? 'opacity-100' : 'opacity-0 scale-50';
@@ -255,8 +258,8 @@ export const FactorBug: React.FC<FactorBugProps> = ({
     }
 
   return (
-    <div className="relative w-full h-[450px] flex items-center justify-center">
-        <div className="relative flex flex-col items-center" style={{ transform: 'translateY(-2rem)'}}>
+    <div className="relative w-full h-[450px] flex justify-center pt-16">
+        <div className="relative flex flex-col items-center">
 
             {/* Head */}
             <div className="relative w-24 h-24 mb-[-2rem] z-0">

@@ -1,0 +1,5 @@
+{
+  "name": "Factor Bugs",
+  "description": "An interactive web application to help users learn about number factors from 1 to 100 by building visual 'factor bugs'. It features three modes: a demonstration mode, a guided practice mode, and a creative mode.",
+  "requestFramePermissions": []
+}

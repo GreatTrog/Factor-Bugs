@@ -112,7 +112,6 @@ export const TwoPlayerGame: React.FC = () => {
     setInputs(null);
     setResult(null);
     setBodyShape('bug');
-    setBodyShape('bug');
     setGameStarted(true);
   };
 

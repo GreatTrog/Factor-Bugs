@@ -177,6 +177,7 @@ export const TwoPlayerGame: React.FC = () => {
     setSelectedNumber(null);
     setInputs(null);
     setResult(null);
+    setBodyShape('bug');
   };
 
   const winnerText = () => {
@@ -321,7 +322,11 @@ export const TwoPlayerGame: React.FC = () => {
             <button
               onClick={() => changeStructure('toggleBody')}
               disabled={result !== null}
-              className="px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:opacity-50"
+              className={`px-3 py-2 text-white rounded-md disabled:opacity-50 ${
+                bodyShape === 'slug' && (inputs.legs.length > 0 || inputs.stinger !== null)
+                  ? 'bg-orange-600 hover:bg-orange-700 ring-2 ring-orange-300'
+                  : 'bg-purple-500 hover:bg-purple-600'
+              }`}
             >
               Body: {bodyShape === 'bug' ? 'Bug' : 'Slug'}
             </button>
@@ -347,6 +352,12 @@ export const TwoPlayerGame: React.FC = () => {
               Toggle Stinger
             </button>
           </div>
+
+          {bodyShape === 'slug' && (inputs.legs.length > 0 || inputs.stinger !== null) && (
+            <p className="mb-2 px-4 py-2 bg-orange-100 border border-orange-300 text-orange-800 rounded-lg font-semibold text-center">
+              A creature with legs or a stinger needs a Bug body. Change the body shape to Bug.
+            </p>
+          )}
 
           <FactorBug
             mode={GameMode.TwoPlayer}

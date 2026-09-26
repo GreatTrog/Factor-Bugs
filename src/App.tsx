@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { FactorInfo, UserInputState, CorrectnessState } from '@/types';
 import { GameMode, NumberType } from '@/types';
-import { FactorBug } from '@/components/FactorBug';
+import { FactorBug, type BodyShape } from '@/components/FactorBug';
 import { ScoreBug } from '@/components/ScoreBug';
+import { TwoPlayerGame } from '@/components/TwoPlayerGame';
 
 const calculateFactorInfo = (num: number): FactorInfo => {
   if (num < 1 || num > 100) {
@@ -74,9 +75,10 @@ const ModeSelector: React.FC<{ onSelect: (mode: GameMode) => void; selected: Gam
     { id: GameMode.Watch, name: 'Watch & Learn' },
     { id: GameMode.Guided, name: 'Guided Practice' },
     { id: GameMode.Creative, name: 'Creative Mode' },
+    { id: GameMode.TwoPlayer, name: '2 Player Bug Battle' },
   ];
   return (
-    <div className="flex justify-center space-x-2 md:space-x-4 bg-white/80 p-2 rounded-full shadow-inner">
+    <div className="flex flex-wrap justify-center gap-2 md:gap-3 bg-white/80 p-2 rounded-2xl shadow-inner">
       {modes.map((mode) => (
         <button
           key={mode.id}
@@ -119,6 +121,7 @@ export default function App() {
   const [creativeCorrectness, setCreativeCorrectness] = useState<CorrectnessState | null>(null);
   const [showCreativeAnswers, setShowCreativeAnswers] = useState(false);
   const [creativeMessage, setCreativeMessage] = useState('');
+  const [creativeBodyShape, setCreativeBodyShape] = useState<BodyShape>('bug');
 
   const generateNewCreativeBug = useCallback(() => {
     const newNum = Math.floor(Math.random() * 100) + 1;
@@ -133,6 +136,7 @@ export default function App() {
     setCreativeCorrectness(null);
     setShowCreativeAnswers(false);
     setCreativeMessage('');
+    setCreativeBodyShape('bug');
   }, []);
 
   // Effect to handle MODE CHANGE
@@ -296,11 +300,19 @@ export default function App() {
     // Step 1: Check the bug's structure
     const correctLegPairs = Math.max(0, creativeFactorInfo.pairs.length - 1);
     const correctHasStinger = creativeFactorInfo.stinger !== null;
+    const correctBodyShape: BodyShape = creativeFactorInfo.type === NumberType.Prime ? 'slug' : 'bug';
     const userLegPairs = creativeInputs.legs.length;
     const userHasStinger = creativeInputs.stinger !== null;
 
-    if (correctLegPairs !== userLegPairs || correctHasStinger !== userHasStinger) {
+    if (
+      correctLegPairs !== userLegPairs ||
+      correctHasStinger !== userHasStinger ||
+      creativeBodyShape !== correctBodyShape
+    ) {
         let message = "The bug's shape isn't quite right. ";
+        if (creativeBodyShape !== correctBodyShape) {
+            message += correctBodyShape === 'slug' ? "It should have a slug body. " : "It should have a bug body. ";
+        }
         if (correctLegPairs !== userLegPairs) {
             message += `It should have ${correctLegPairs} pair(s) of legs. `;
         }
@@ -365,10 +377,12 @@ export default function App() {
     }
   };
 
-  const handleCreativeBugBuild = (action: 'addLeg' | 'removeLeg' | 'toggleStinger') => {
+  const handleCreativeBugBuild = (action: 'addLeg' | 'removeLeg' | 'toggleStinger' | 'toggleBody') => {
     if (!creativeInputs) return;
     const newInputs = {...creativeInputs};
-    if (action === 'addLeg') {
+    if (action === 'toggleBody') {
+        setCreativeBodyShape(shape => shape === 'bug' ? 'slug' : 'bug');
+    } else if (action === 'addLeg') {
         newInputs.legs.push(['', '']);
     } else if (action === 'removeLeg' && newInputs.legs.length > 0) {
         newInputs.legs.pop();
@@ -486,6 +500,8 @@ export default function App() {
             )}
             </>
         );
+      case GameMode.TwoPlayer:
+        return <TwoPlayerGame />;
       case GameMode.Creative:
         return (
             <div className="w-full">
@@ -494,12 +510,27 @@ export default function App() {
                  </p>
                  {creativeFactorInfo && creativeInputs && (
                     <div className="flex flex-col items-center">
-                      <div className="flex justify-center items-center space-x-4 mb-2 p-3 bg-white/60 rounded-lg shadow-md">
+                      <div className="flex flex-wrap justify-center items-center gap-2 mb-2 p-3 bg-white/60 rounded-lg shadow-md">
                           <span className="font-semibold text-gray-700">Build the Bug:</span>
+                          <button
+                              onClick={() => handleCreativeBugBuild('toggleBody')}
+                              className={`px-4 py-2 text-white rounded-md transition-colors shadow-sm ${
+                                creativeBodyShape === 'slug' && (creativeInputs.legs.length > 0 || creativeInputs.stinger !== null)
+                                  ? 'bg-orange-600 hover:bg-orange-700 ring-2 ring-orange-300'
+                                  : 'bg-purple-500 hover:bg-purple-600'
+                              }`}
+                          >
+                              Body: {creativeBodyShape === 'bug' ? 'Bug' : 'Slug'}
+                          </button>
                           <button onClick={() => handleCreativeBugBuild('addLeg')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors shadow-sm">+ Add Leg Pair</button>
                           <button onClick={() => handleCreativeBugBuild('removeLeg')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors shadow-sm" disabled={creativeInputs.legs.length === 0}>- Remove Leg Pair</button>
                           <button onClick={() => handleCreativeBugBuild('toggleStinger')} className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors shadow-sm">Toggle Stinger</button>
                       </div>
+                      {creativeBodyShape === 'slug' && (creativeInputs.legs.length > 0 || creativeInputs.stinger !== null) && (
+                        <p className="mb-2 px-4 py-2 bg-orange-100 border border-orange-300 text-orange-800 rounded-lg font-semibold text-center">
+                          A creature with legs or a stinger needs a Bug body. Change the body shape to Bug.
+                        </p>
+                      )}
                       <div className="relative w-full">
                           <FactorBug
                               mode={GameMode.Creative}
@@ -509,6 +540,7 @@ export default function App() {
                               correctness={creativeCorrectness}
                               showAnswers={showCreativeAnswers}
                               onNumberClick={generateNewCreativeBug}
+                              bodyShape={creativeBodyShape}
                           />
                       </div>
                       <div className="mt-4 flex flex-col items-center">
@@ -572,6 +604,7 @@ export default function App() {
         ),
       },
       [GameMode.Watch]: null,
+      [GameMode.TwoPlayer]: null,
     };
 
     const currentContent = modalContent[mode];
@@ -596,7 +629,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-amber-50 text-gray-800 font-sans flex flex-col items-center pt-4 px-4">
       {renderCongratsModal()}
-      <header className={`w-full max-w-4xl flex items-center mb-4 ${mode === GameMode.Watch ? 'justify-center' : 'justify-between'}`}>
+      <header className={`w-full max-w-5xl flex items-center mb-4 ${(mode === GameMode.Watch || mode === GameMode.TwoPlayer) ? 'justify-center' : 'justify-between'}`}>
         <div className="text-left">
           <h1 className="text-4xl md:text-5xl font-bold text-green-800 tracking-tight">Factor Bugs</h1>
           <p className="text-lg text-gray-600">A fun way to learn about factors!</p>
@@ -608,7 +641,7 @@ export default function App() {
 
       <ModeSelector onSelect={handleModeSelect} selected={mode} />
 
-      <main className="w-full max-w-4xl mt-4 flex flex-col items-center">
+      <main className="w-full max-w-5xl mt-4 flex flex-col items-center">
         {renderContent()}
       </main>
       

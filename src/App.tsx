@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { FactorInfo, UserInputState, CorrectnessState } from '@/types';
 import { GameMode, NumberType } from '@/types';
-import { FactorBug } from '@/components/FactorBug';
+import { FactorBug, type BodyShape } from '@/components/FactorBug';
 import { ScoreBug } from '@/components/ScoreBug';
 import { TwoPlayerGame } from '@/components/TwoPlayerGame';
 
@@ -121,6 +121,7 @@ export default function App() {
   const [creativeCorrectness, setCreativeCorrectness] = useState<CorrectnessState | null>(null);
   const [showCreativeAnswers, setShowCreativeAnswers] = useState(false);
   const [creativeMessage, setCreativeMessage] = useState('');
+  const [creativeBodyShape, setCreativeBodyShape] = useState<BodyShape>('bug');
 
   const generateNewCreativeBug = useCallback(() => {
     const newNum = Math.floor(Math.random() * 100) + 1;
@@ -135,6 +136,7 @@ export default function App() {
     setCreativeCorrectness(null);
     setShowCreativeAnswers(false);
     setCreativeMessage('');
+    setCreativeBodyShape('bug');
   }, []);
 
   // Effect to handle MODE CHANGE
@@ -298,11 +300,19 @@ export default function App() {
     // Step 1: Check the bug's structure
     const correctLegPairs = Math.max(0, creativeFactorInfo.pairs.length - 1);
     const correctHasStinger = creativeFactorInfo.stinger !== null;
+    const correctBodyShape: BodyShape = creativeFactorInfo.type === NumberType.Prime ? 'slug' : 'bug';
     const userLegPairs = creativeInputs.legs.length;
     const userHasStinger = creativeInputs.stinger !== null;
 
-    if (correctLegPairs !== userLegPairs || correctHasStinger !== userHasStinger) {
+    if (
+      correctLegPairs !== userLegPairs ||
+      correctHasStinger !== userHasStinger ||
+      creativeBodyShape !== correctBodyShape
+    ) {
         let message = "The bug's shape isn't quite right. ";
+        if (creativeBodyShape !== correctBodyShape) {
+            message += correctBodyShape === 'slug' ? "It should have a slug body. " : "It should have a bug body. ";
+        }
         if (correctLegPairs !== userLegPairs) {
             message += `It should have ${correctLegPairs} pair(s) of legs. `;
         }
@@ -367,10 +377,12 @@ export default function App() {
     }
   };
 
-  const handleCreativeBugBuild = (action: 'addLeg' | 'removeLeg' | 'toggleStinger') => {
+  const handleCreativeBugBuild = (action: 'addLeg' | 'removeLeg' | 'toggleStinger' | 'toggleBody') => {
     if (!creativeInputs) return;
     const newInputs = {...creativeInputs};
-    if (action === 'addLeg') {
+    if (action === 'toggleBody') {
+        setCreativeBodyShape(shape => shape === 'bug' ? 'slug' : 'bug');
+    } else if (action === 'addLeg') {
         newInputs.legs.push(['', '']);
     } else if (action === 'removeLeg' && newInputs.legs.length > 0) {
         newInputs.legs.pop();
@@ -500,6 +512,9 @@ export default function App() {
                     <div className="flex flex-col items-center">
                       <div className="flex justify-center items-center space-x-4 mb-2 p-3 bg-white/60 rounded-lg shadow-md">
                           <span className="font-semibold text-gray-700">Build the Bug:</span>
+                          <button onClick={() => handleCreativeBugBuild('toggleBody')} className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors shadow-sm">
+                              Body: {creativeBodyShape === 'bug' ? 'Bug' : 'Slug'}
+                          </button>
                           <button onClick={() => handleCreativeBugBuild('addLeg')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors shadow-sm">+ Add Leg Pair</button>
                           <button onClick={() => handleCreativeBugBuild('removeLeg')} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors shadow-sm" disabled={creativeInputs.legs.length === 0}>- Remove Leg Pair</button>
                           <button onClick={() => handleCreativeBugBuild('toggleStinger')} className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors shadow-sm">Toggle Stinger</button>
@@ -513,6 +528,7 @@ export default function App() {
                               correctness={creativeCorrectness}
                               showAnswers={showCreativeAnswers}
                               onNumberClick={generateNewCreativeBug}
+                              bodyShape={creativeBodyShape}
                           />
                       </div>
                       <div className="mt-4 flex flex-col items-center">

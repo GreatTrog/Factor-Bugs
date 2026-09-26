@@ -2,6 +2,7 @@ export enum GameMode {
   Watch = 1,
   Guided = 2,
   Creative = 3,
+  TwoPlayer = 4,
 }
 
 export enum NumberType {

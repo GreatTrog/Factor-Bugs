@@ -87,7 +87,7 @@ export const FactorBug: React.FC<FactorBugProps> = ({
   showAnswers = false,
   onNumberClick,
 }) => {
-    const isCreative = mode === GameMode.Creative;
+    const isCreative = mode === GameMode.Creative || mode === GameMode.TwoPlayer;
 
     const number = factorInfo?.number;
     const bugType = factorInfo?.type;

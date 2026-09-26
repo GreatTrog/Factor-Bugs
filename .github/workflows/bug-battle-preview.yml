@@ -1,8 +1,9 @@
-name: Publish Bug Battle Preview
+name: Publish Factor Bugs
 
 on:
   push:
     branches:
+      - main
       - feature/two-player-bug-hunt
   workflow_dispatch:
 
@@ -11,6 +12,7 @@ permissions:
 
 jobs:
   preview:
+    if: github.ref == 'refs/heads/feature/two-player-bug-hunt'
     runs-on: ubuntu-latest
     steps:
       - name: Check out feature branch
@@ -33,4 +35,29 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           destination_dir: bug-battle-preview
+          keep_files: true
+
+  live:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build live site
+        run: npx tsc && npx vite build --base=/Factor-Bugs/
+
+      - name: Publish live site
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
           keep_files: true

@@ -87,7 +87,8 @@ export const FactorBug: React.FC<FactorBugProps> = ({
   showAnswers = false,
   onNumberClick,
 }) => {
-    const isCreative = mode === GameMode.Creative || mode === GameMode.TwoPlayer;
+    const isCreativeMode = mode === GameMode.Creative;
+    const isCreative = isCreativeMode || mode === GameMode.TwoPlayer;
 
     const number = factorInfo?.number;
     const bugType = factorInfo?.type;
@@ -272,9 +273,9 @@ export const FactorBug: React.FC<FactorBugProps> = ({
             <div className={`relative ${bodyShapeClass} ${bodyColorClass} border-8 flex items-center justify-center z-10`}>
                 {bugType !== NumberType.Prime && <div className="absolute inset-4 bg-white/50 rounded-full" />}
                 <div
-                    onClick={isCreative ? onNumberClick : undefined}
-                    className={`relative z-10 ${isCreative ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
-                    title={isCreative ? 'Click for a new bug!' : ''}
+                    onClick={isCreativeMode ? onNumberClick : undefined}
+                    className={`relative z-10 ${isCreativeMode ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
+                    title={isCreativeMode ? 'Click for a new bug!' : ''}
                 >
                     <span className="text-4xl md:text-5xl font-extrabold text-black">
                         {bodyText}

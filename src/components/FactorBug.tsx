@@ -107,8 +107,10 @@ export const FactorBug: React.FC<FactorBugProps> = ({
         ? 'h-48 w-24 rounded-[50%]' // Slug
         : 'h-48 w-48 rounded-full'; // Bug/Bee
 
-    const bodyColorClass = bugType === NumberType.Square ? 'bg-yellow-400 border-yellow-600' : 'bg-green-400 border-green-600';
-    const stalkColorClass = bugType === NumberType.Square ? 'bg-yellow-600' : 'bg-green-600';
+    const hasEditableStinger = isCreative && userInputs?.stinger !== null;
+    const useBeeColour = isCreative ? hasEditableStinger : bugType === NumberType.Square;
+    const bodyColorClass = useBeeColour ? 'bg-yellow-400 border-yellow-600' : 'bg-green-400 border-green-600';
+    const stalkColorClass = useBeeColour ? 'bg-yellow-600' : 'bg-green-600';
 
 
     const getPairs = () => {

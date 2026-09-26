@@ -2,6 +2,8 @@ import React from 'react';
 import type { FactorInfo, UserInputState, CorrectnessState } from '@/types';
 import { GameMode, NumberType } from '@/types';
 
+export type BodyShape = 'bug' | 'slug';
+
 type FactorBugProps = {
   mode: GameMode;
   factorInfo?: FactorInfo;
@@ -11,6 +13,7 @@ type FactorBugProps = {
   correctness?: CorrectnessState | null;
   showAnswers?: boolean;
   onNumberClick?: () => void;
+  bodyShape?: BodyShape;
 };
 
 const getInputClass = (isCorrect: boolean | null | undefined, showAnswers: boolean) => {
@@ -86,6 +89,7 @@ export const FactorBug: React.FC<FactorBugProps> = ({
   correctness,
   showAnswers = false,
   onNumberClick,
+  bodyShape,
 }) => {
     const isCreativeMode = mode === GameMode.Creative;
     const isCreative = isCreativeMode || mode === GameMode.TwoPlayer;
@@ -96,7 +100,10 @@ export const FactorBug: React.FC<FactorBugProps> = ({
     // Show the number in Guided and Creative modes even for primes
     const bodyText = (mode === GameMode.Watch && bugType === NumberType.Prime) ? '' : number;
 
-    const bodyShapeClass = bugType === NumberType.Prime
+    const effectiveBodyShape: BodyShape =
+        bodyShape ?? (bugType === NumberType.Prime ? 'slug' : 'bug');
+
+    const bodyShapeClass = effectiveBodyShape === 'slug'
         ? 'h-48 w-24 rounded-[50%]' // Slug
         : 'h-48 w-48 rounded-full'; // Bug/Bee
 
@@ -271,7 +278,7 @@ export const FactorBug: React.FC<FactorBugProps> = ({
 
             {/* Body */}
             <div className={`relative ${bodyShapeClass} ${bodyColorClass} border-8 flex items-center justify-center z-10`}>
-                {bugType !== NumberType.Prime && <div className="absolute inset-4 bg-white/50 rounded-full" />}
+                {effectiveBodyShape === 'bug' && <div className="absolute inset-4 bg-white/50 rounded-full" />}
                 <div
                     onClick={isCreativeMode ? onNumberClick : undefined}
                     className={`relative z-10 ${isCreativeMode ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}

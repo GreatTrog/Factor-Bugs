@@ -510,7 +510,7 @@ export default function App() {
                  </p>
                  {creativeFactorInfo && creativeInputs && (
                     <div className="flex flex-col items-center">
-                      <div className="flex justify-center items-center space-x-4 mb-2 p-3 bg-white/60 rounded-lg shadow-md">
+                      <div className="flex flex-wrap justify-center items-center gap-2 mb-2 p-3 bg-white/60 rounded-lg shadow-md">
                           <span className="font-semibold text-gray-700">Build the Bug:</span>
                           <button onClick={() => handleCreativeBugBuild('toggleBody')} className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors shadow-sm">
                               Body: {creativeBodyShape === 'bug' ? 'Bug' : 'Slug'}

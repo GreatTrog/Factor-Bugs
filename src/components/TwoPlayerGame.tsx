@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { FactorBug } from '@/components/FactorBug';
+import { FactorBug, type BodyShape } from '@/components/FactorBug';
 import type { FactorInfo, UserInputState } from '@/types';
 import { GameMode, NumberType } from '@/types';
 import { calculateFactorInfo } from '@/utils/factors';
@@ -48,7 +48,10 @@ const emptyInputs = (): UserInputState => ({
   stinger: null,
 });
 
-const isBugCorrect = (factorInfo: FactorInfo, inputs: UserInputState) => {
+const isBugCorrect = (factorInfo: FactorInfo, inputs: UserInputState, bodyShape: BodyShape) => {
+  const correctBodyShape: BodyShape = factorInfo.type === NumberType.Prime ? 'slug' : 'bug';
+  if (bodyShape !== correctBodyShape) return false;
+
   const correctLegPairs = Math.max(0, factorInfo.pairs.length - 1);
   const correctHasStinger = factorInfo.stinger !== null;
 
@@ -94,6 +97,7 @@ export const TwoPlayerGame: React.FC = () => {
   const [inputs, setInputs] = useState<UserInputState | null>(null);
   const [result, setResult] = useState<'correct' | 'incorrect' | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [bodyShape, setBodyShape] = useState<BodyShape>('bug');
 
   const factorInfo = useMemo(
     () => (selectedNumber === null ? null : calculateFactorInfo(selectedNumber)),
@@ -107,6 +111,8 @@ export const TwoPlayerGame: React.FC = () => {
     setSelectedNumber(null);
     setInputs(null);
     setResult(null);
+    setBodyShape('bug');
+    setBodyShape('bug');
     setGameStarted(true);
   };
 
@@ -114,6 +120,7 @@ export const TwoPlayerGame: React.FC = () => {
     if (selectedNumber !== null || result !== null) return;
     setSelectedNumber(number);
     setInputs(emptyInputs());
+    setBodyShape('bug');
   };
 
   const handleInputChange = (
@@ -135,7 +142,7 @@ export const TwoPlayerGame: React.FC = () => {
     setInputs(next);
   };
 
-  const changeStructure = (action: 'addLeg' | 'removeLeg' | 'toggleStinger') => {
+  const changeStructure = (action: 'addLeg' | 'removeLeg' | 'toggleStinger' | 'toggleBody') => {
     if (!inputs || result !== null) return;
     const next: UserInputState = {
       antennae: [...inputs.antennae] as [string, string],
@@ -143,6 +150,7 @@ export const TwoPlayerGame: React.FC = () => {
       stinger: inputs.stinger,
     };
 
+    if (action === 'toggleBody') setBodyShape(shape => shape === 'bug' ? 'slug' : 'bug');
     if (action === 'addLeg') next.legs.push(['', '']);
     if (action === 'removeLeg') next.legs.pop();
     if (action === 'toggleStinger') next.stinger = next.stinger === null ? '' : null;
@@ -152,7 +160,7 @@ export const TwoPlayerGame: React.FC = () => {
   const checkBug = () => {
     if (!factorInfo || !inputs || result !== null) return;
 
-    if (isBugCorrect(factorInfo, inputs)) {
+    if (isBugCorrect(factorInfo, inputs, bodyShape)) {
       setBoard(previous => previous.filter(n => n !== factorInfo.number));
       setHotels(previous => {
         const next: [number[], number[]] = [[...previous[0]], [...previous[1]]];
@@ -312,6 +320,13 @@ export const TwoPlayerGame: React.FC = () => {
           <div className="flex flex-wrap justify-center items-center gap-2 mb-1">
             <span className="font-semibold text-gray-700 mr-1">Build the bug:</span>
             <button
+              onClick={() => changeStructure('toggleBody')}
+              disabled={result !== null}
+              className="px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:opacity-50"
+            >
+              Body: {bodyShape === 'bug' ? 'Bug' : 'Slug'}
+            </button>
+            <button
               onClick={() => changeStructure('addLeg')}
               disabled={result !== null}
               className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
@@ -339,6 +354,7 @@ export const TwoPlayerGame: React.FC = () => {
             factorInfo={factorInfo}
             userInputs={inputs}
             onInputChange={handleInputChange}
+            bodyShape={bodyShape}
           />
 
           <div className="text-center -mt-2">
